@@ -1,0 +1,30 @@
+﻿@page
+@model HillViewFrontEnd.Pages.UserModel
+@{
+}
+Users Page
+
+<div>
+    <table id="usersTable"></table>
+
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+                if ('@Model.message' != '') {
+                    alert("ERROR")
+                }
+                var data = @Html.Raw(Json.Serialize(Model.users));
+                console.log(data)
+                $('#usersTable').DataTable({
+                    "data": data,
+                    "columns": [
+                        { "data": "id" },
+                        { "data": "firstName" },
+                        { "data": "lastName" },
+                    ]
+                });
+        });
+        </script>
+    }
+    
+</div>

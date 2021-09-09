@@ -1,0 +1,247 @@
+﻿@page
+@model IndexModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Home page";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/index.css" />
+    <meta name="google-signin-scope" content="profile email">
+    <meta name="google-signin-client_id" content="477085309922-tobap9s37378t1qk6sn8ijv15gge04ol.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+}
+@Html.AntiForgeryToken()
+
+@if (!Model.IsLoggedIn)
+{
+
+    <script>
+        window.fbAsyncInit = function () {
+            FB.init({
+                appId: '822732198228621',
+                cookie: true,
+                xfbml: true,
+                version: 'v11.0'
+            });
+
+            FB.AppEvents.logPageView();
+
+            @*FB.getLoginStatus(function (response) {
+                statusChangeCallback(response);
+                console.log(response)
+            });*@
+
+        };
+
+        function checkLoginState() {
+            FB.getLoginStatus(function (response) {
+                statusChangeCallback(response);
+                console.log(response)
+            });
+        }
+
+        function statusChangeCallback(response) {
+            console.log('statusChangeCallback');
+            console.log(response);
+
+            // The response object is returned with a status field that lets the
+            // app know the current login status of the person.
+            // Full docs on the response object can be found in the documentation
+            // for FB.getLoginStatus().
+            if (response.status === 'connected') {
+                console.log(response.authResponse.accessToken)
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44308/?handler=LoginFacebook",
+                    data: { accessToken: response.authResponse.accessToken },
+                    success: function (res) {
+                        window.location.href = '/';
+                    },
+                    headers: {
+                        RequestVerificationToken:
+                            $('input:hidden[name="__RequestVerificationToken"]').val()
+                    }
+                });
+                // Logged into your app and Facebook.
+                console.log('Welcome!  Fetching your information.... ');
+                FB.api('/me?fields=id,name,email', function (response) {
+                    console.log('Successful login for: ' + response.name);
+                    document.getElementById('status').innerHTML =
+                        'Thanks for logging in, ' + response.name + '!';
+                });
+            } else {
+                // The person is not logged into your app or we are unable to tell.
+                document.getElementById('status').innerHTML = 'Please log ' +
+                    'into this app.';
+            }
+        }
+
+        function success(response) {
+            console.log(response)
+        }
+
+
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) { return; }
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
+
+    <div id="logreg-forms">
+        <h3 style="color: red">@Model.Message</h3>
+        <h1 class="h3 mb-3 font-weight-normal" style="text-align: center"> Sign in</h1>
+        <div class="social-login">
+            <fb:login-button scope="public_profile,email"
+                             onlogin="checkLoginState();">
+            </fb:login-button>
+            <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" onclick="ClickLogin()"></div>
+            @*<button class="btn facebook-btn social-btn" type="button"><span><i class="fab fa-facebook-f"></i> Sign in with Facebook</span> </button>*@
+            @*<button class="btn google-btn social-btn" type="button"><span><i class="fab fa-google-plus-g"></i> Sign in with Google+</span> </button>*@
+        </div>
+        <form class="form-signin" asp-page-handler="Login">
+
+            <p style="text-align:center"> OR  </p>
+            <input type="text" asp-for="Username" id="" class="form-control" placeholder="Username" required="" autofocus="">
+            <input type="password" asp-for="Password" id="inputPassword" class="form-control" placeholder="Password" required="">
+
+            <button class="btn btn-success btn-block" type="submit"><i class="fas fa-sign-in-alt"></i> Sign in</button>
+            <a href="#" id="forgot_pswd">Forgot password?</a>
+            <hr>
+            <!-- <p>Don't have an account!</p>  -->
+            <button class="btn btn-primary btn-block" type="button" id="btn-signup"><i class="fas fa-user-plus"></i> Sign up New Account</button>
+        </form>
+
+        <form action="/reset/password/" class="form-reset">
+            <input type="email" id="resetEmail" class="form-control" placeholder="Email address" required="" autofocus="">
+            <button class="btn btn-primary btn-block" type="submit">Reset Password</button>
+            <a href="#" id="cancel_reset"><i class="fas fa-angle-left"></i> Back</a>
+        </form>
+
+        <form class="form-signup" asp-page-handler="Register">
+            @*<div class="social-login">
+            <button class="btn facebook-btn social-btn" type="button"><span><i class="fab fa-facebook-f"></i> Sign up with Facebook</span> </button>
+        </div>
+        <div class="social-login">
+            <button class="btn google-btn social-btn" type="button"><span><i class="fab fa-google-plus-g"></i> Sign up with Google+</span> </button>
+        </div>*@
+
+            <p style="text-align:center">OR</p>
+
+            <input type="text" asp-for="Username" id="user-name" class="form-control" placeholder="Username" required autofocus="">
+            <input type="text" asp-for="FirstName" id="user-email" class="form-control" placeholder="First Name" required autofocus="">
+            <input type="text" asp-for="LastName" id="user-email" class="form-control" placeholder="Last Name" required autofocus="">
+            <input type="email" asp-for="Email" id="user-email" class="form-control" placeholder="Email address" required autofocus="">
+            <input type="password" asp-for="Password" id="new-pass" class="form-control" placeholder="Password" required autofocus="">
+@*            <input type="password" id="new-repeatpass" class="form-control" placeholder="Repeat Password" required autofocus="">
+*@
+            <button class="btn btn-primary btn-block" type="submit"><i class="fas fa-user-plus"></i> Sign Up</button>
+            <a href="#" id="cancel_signup"><i class="fas fa-angle-left"></i> Back</a>
+        </form>
+        <br>
+
+    </div>
+}
+else
+{
+    <h3> Logged in</h3>
+}
+
+@section Scripts {
+    <script>
+        function toggleResetPswd(e) {
+            e.preventDefault();
+            $('#logreg-forms .form-signin').toggle() // display:block or none
+            $('#logreg-forms .form-reset').toggle() // display:block or none
+        }
+
+        function toggleSignUp(e) {
+            e.preventDefault();
+            $('#logreg-forms .form-signin').toggle(); // display:block or none
+            $('#logreg-forms .form-signup').toggle(); // display:block or none
+        }
+
+        $(() => {
+            // Login Register Form
+            $('#logreg-forms #forgot_pswd').click(toggleResetPswd);
+            $('#logreg-forms #cancel_reset').click(toggleResetPswd);
+            $('#logreg-forms #btn-signup').click(toggleSignUp);
+            $('#logreg-forms #cancel_signup').click(toggleSignUp);
+        })
+        var clicked = false;//Global Variable
+        function ClickLogin() {
+            clicked = true;
+        }
+        function onSignIn(googleUser) {
+            // Useful data for your client-side scripts:
+            if (clicked) {
+                var profile = googleUser.getBasicProfile();
+                console.log("ID: " + profile.getId()); // Don't send this directly to your server!
+                console.log('Full Name: ' + profile.getName());
+                console.log('Given Name: ' + profile.getGivenName());
+                console.log('Family Name: ' + profile.getFamilyName());
+                console.log("Image URL: " + profile.getImageUrl());
+                console.log("Email: " + profile.getEmail());
+
+                // The ID token you need to pass to your backend:
+                var id_token = googleUser.getAuthResponse().id_token;
+                console.log("ID Token: " + id_token);
+                $.ajax({
+                    type: "POST",
+                    url: "https://localhost:44308/?handler=LoginGoogle",
+                    data: { accessToken: id_token },
+                    success: function (res) {
+                        window.location.href = '/';
+                    },
+                    headers: {
+                        RequestVerificationToken:
+                            $('input:hidden[name="__RequestVerificationToken"]').val()
+                    }
+                });
+            }
+            
+        }
+        var password, confirm_password;
+        $("#btn-signup").change(function () {
+            password = document.getElementById("new-pass")
+                , confirm_password = document.getElementById("new-repeatpass");
+        })
+
+        function validatePassword() {
+            if (password.value != confirm_password.value) {
+                confirm_password.setCustomValidity("Passwords Don't Match");
+            } else {
+                confirm_password.setCustomValidity('');
+            }
+        }
+
+        password.onchange = validatePassword;
+        confirm_password.onkeyup = validatePassword;
+    </script>
+}
+
+@*<div>
+        <form method="post" asp-page-handler="Login">
+            <button type="submit">
+                Sign In
+            </button>
+        </form>
+
+        <form method="post" asp-page-handler="LogOut">
+            <button type="submit">
+                Log Out
+            </button>
+        </form>
+
+        <form method="post" asp-page-handler="ShowData">
+            <button type="submit">
+                Show Data
+            </button>
+        </form>
+
+        <h2>@Html.Raw(Model.Message)</h2>
+    </div>*@
